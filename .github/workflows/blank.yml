@@ -1,43 +1,72 @@
-name: Build macOS Flutter App
+# This workflow builds a Flutter application for macOS.
+name: Build Flutter macOS
 
 on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
-  build-macos:
+  build:
+    # Use the latest version of macOS available
     runs-on: macos-latest
 
     steps:
-      # Step 1: Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # 1. Check out your repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # Step 2: Setup Flutter
-      - name: Setup Flutter
+      # 2. Set up the Flutter SDK
+      # This action automatically caches the Flutter SDK itself
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable' # You can also specify a version like '3.13.0'
+          channel: 'stable' # Or 'beta', 'dev', 'master'
 
-      # Step 3: Install dependencies
-      - name: Install dependencies
+      # 3. Get pub cache path
+      # We need this to know exactly where pub stores its downloaded packages
+      - name: Get pub cache path
+        id: pub-cache
+        run: echo "dir=$(flutter pub cache path)" >> $GITHUB_OUTPUT
+
+      # 4. Cache pub dependencies
+      # This step caches the downloaded packages to speed up 'flutter pub get'
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          # The directory to cache, from the previous step
+          path: ${{ steps.pub-cache.outputs.dir }}
+          # A unique key for the cache, based on the OS and the contents of pubspec.lock
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          # A fallback key if the exact key isn't found
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      # 5. Enable macOS desktop builds
+      - name: Enable macOS desktop
+        run: flutter config --enable-macos-desktop
+
+      # 6. Get Flutter dependencies
+      # This will be much faster if the cache was restored
+      - name: Get Flutter dependencies
         run: flutter pub get
 
-      # Step 4: Build macOS app
-      - name: Build macOS App
+      # 7. Build the macOS application
+      # --release builds the optimized release version
+      - name: Build macOS app
         run: flutter build macos --release
 
-      # Step 5: Archive the built app for artifacts
-      - name: Archive macOS App
-        run: |
-          mkdir -p build_artifacts
-          cp -R build/macos/Build/Products/Release/*.app build_artifacts/
-
-      # Step 6: Upload artifacts
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+      # 8. Upload the build artifact (.app file)
+      # This allows you to download the built app from the workflow summary page
+      - name: Upload macOS build artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: macos-app
-          path: build_artifacts/
+          name: macos-release-build
+          # The path to the built app bundle
+          path: build/macos/Build/Products/Release/*.app
+
