@@ -28,40 +28,34 @@ jobs:
         with:
           channel: 'stable' # Or 'beta', 'dev', 'master'
 
-      # 3. Get pub cache path
-      # We need this to know exactly where pub stores its downloaded packages
-      - name: Get pub cache path
-        id: pub-cache
-        run: echo "dir=$(flutter pub cache path)" >> $GITHUB_OUTPUT
-
-      # 4. Cache pub dependencies
+      # 3. Cache pub dependencies
       # This step caches the downloaded packages to speed up 'flutter pub get'
       - name: Cache pub dependencies
         uses: actions/cache@v4
         with:
-          # The directory to cache, from the previous step
-          path: ${{ steps.pub-cache.outputs.dir }}
+          # The default path to the pub cache directory on macOS/Linux
+          path: ~/.pub-cache
           # A unique key for the cache, based on the OS and the contents of pubspec.lock
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
           # A fallback key if the exact key isn't found
           restore-keys: |
             ${{ runner.os }}-pub-
 
-      # 5. Enable macOS desktop builds
+      # 4. Enable macOS desktop builds
       - name: Enable macOS desktop
         run: flutter config --enable-macos-desktop
 
-      # 6. Get Flutter dependencies
+      # 5. Get Flutter dependencies
       # This will be much faster if the cache was restored
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      # 7. Build the macOS application
+      # 6. Build the macOS application
       # --release builds the optimized release version
       - name: Build macOS app
         run: flutter build macos --release
 
-      # 8. Upload the build artifact (.app file)
+      # 7. Upload the build artifact (.app file)
       # This allows you to download the built app from the workflow summary page
       - name: Upload macOS build artifact
         uses: actions/upload-artifact@v4
@@ -69,4 +63,5 @@ jobs:
           name: macos-release-build
           # The path to the built app bundle
           path: build/macos/Build/Products/Release/*.app
+
 
