@@ -1,0 +1,43 @@
+name: Build macOS Flutter App
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable' # You can also specify a version like '3.13.0'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Step 4: Build macOS app
+      - name: Build macOS App
+        run: flutter build macos --release
+
+      # Step 5: Archive the built app for artifacts
+      - name: Archive macOS App
+        run: |
+          mkdir -p build_artifacts
+          cp -R build/macos/Build/Products/Release/*.app build_artifacts/
+
+      # Step 6: Upload artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-app
+          path: build_artifacts/
