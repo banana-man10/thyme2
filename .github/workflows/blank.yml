@@ -1,5 +1,5 @@
-# This workflow builds a Flutter application for macOS.
-name: Build Flutter macOS
+# This workflow builds a Flutter application for macOS and Windows.
+name: Build the flutter apps
 
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-macos:
     # Use the latest version of macOS available
     runs-on: macos-latest
 
@@ -64,4 +64,51 @@ jobs:
           # The path to the built app bundle
           path: build/macos/Build/Products/Release/*.app
 
+  build-windows:
+    # Use the latest version of Windows available
+    runs-on: windows-latest
 
+    steps:
+      # 1. Check out your repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up the Flutter SDK
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      # 3. Cache pub dependencies
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          # The default path to the pub cache directory on Windows
+          path: $env:LOCALAPPDATA\Pub\Cache
+          # A unique key for the cache, based on the OS and the contents of pubspec.lock
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          # A fallback key if the exact key isn't found
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      # 4. Enable Windows desktop builds
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      # 5. Get Flutter dependencies
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      # 6. Build the Windows application
+      # --release builds the optimized release version
+      - name: Build Windows app
+        run: flutter build windows --release
+
+      # 7. Upload the build artifact (Release directory)
+      # This allows you to download the built app from the workflow summary page
+      - name: Upload Windows build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release-build
+          # The path to the built app's release directory (contains .exe and .dlls)
+          path: build\windows\runner\Release
