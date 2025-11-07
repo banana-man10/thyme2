@@ -12,7 +12,6 @@ class CustomTitleBar extends StatelessWidget implements PreferredSizeWidget {
       height: preferredSize.height,
       child: Row(
         children: [
-          // --- THIS IS NOW THE DRAGGABLE AREA ---
           Expanded(
             child: DragToMoveArea(
               child: Container(
@@ -20,14 +19,13 @@ class CustomTitleBar extends StatelessWidget implements PreferredSizeWidget {
                 alignment: Alignment.centerLeft,
                 padding: const EdgeInsets.only(left: 2.0),
                 child: const Text(
-                  'Focus Lister',
+                  'Thyme',
                   style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ),
             ),
           ),
 
-          // --- THESE BUTTONS ARE NO LONGER INSIDE A DRAGTOMOVEAREA ---
           const WindowButtons(),
         ],
       ),
@@ -38,7 +36,6 @@ class CustomTitleBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(40); // Standard app bar height
 }
 
-// --- Widget for the window control buttons ---
 
 class WindowButtons extends StatelessWidget {
   const WindowButtons({super.key});

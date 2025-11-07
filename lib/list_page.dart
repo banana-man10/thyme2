@@ -5,6 +5,7 @@ import 'package:window_manager/window_manager.dart';
 import 'task_provider.dart';
 import 'main.dart'; // To get kDefaultSize
 import 'custom_title_bar.dart';
+import 'dart:io';
 
 class ListPage extends StatefulWidget {
   const ListPage({super.key});
@@ -75,7 +76,17 @@ class _ListPageState extends State<ListPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // --- Input Row ---
+            
+            if (Platform.isMacOS) ...[
+              const Text(
+                'Note: We cannot test bugs on MacOS because they are 4000 thousand dollars. If you see a bug on Mac, please report it on github!',
+                style: TextStyle(color: Colors.orangeAccent),
+              ),
+              const SizedBox(height: 10),
+            ],
+
+
+
             Row(
               children: [
                 Expanded(

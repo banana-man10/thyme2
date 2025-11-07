@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => TaskProvider(),
       child: MaterialApp(
-        title: 'Focus Lister',
+        title: 'Thyme',
         theme: ThemeData.dark().copyWith(
           scaffoldBackgroundColor: const Color(0xFF22272e),
           primaryColor: Colors.blueAccent,

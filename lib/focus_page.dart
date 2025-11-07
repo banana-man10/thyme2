@@ -65,6 +65,18 @@ class _FocusPageState extends State<FocusPage> {
     _startTimer();
   }
 
+  void _addTenMinutes() {
+    if (!_isStopwatchMode) {
+      windowManager.setAlwaysOnTop(true);
+      windowManager.setSize(const Size(200, 255), animate: true);
+      windowManager.setAlignment(Alignment.bottomRight, animate: true);
+      setState(() {
+        _seconds = 600; // Set to 10 minutes
+      });
+      _startTimer(); // Restart the timer
+    }
+  }
+
   void _startTimer() {
     _timer?.cancel(); // Cancel any existing timer
 
@@ -82,7 +94,30 @@ class _FocusPageState extends State<FocusPage> {
           });
         } else {
           timer.cancel(); // Stop timer at 0
-          // You could add a sound/alert here
+          windowManager.center(animate: true);
+          windowManager.setSize(const Size(500, 300), animate: true);
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Time is up!'),
+              actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _completeTask();
+            },
+            child: const Text('Next task'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _addTenMinutes();
+            },
+            child: const Text('10 more minutes'),
+          ),
+              ],
+            ),
+          );
         }
       }
     });
