@@ -1,0 +1,115 @@
+# This workflow builds a Flutter application for macOS and Windows.
+name: Build the flutter apps
+
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    # Use the latest version of macOS available
+    runs-on: macos-latest
+
+    steps:
+      # 1. Check out your repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up the Flutter SDK
+      # This action automatically caches the Flutter SDK itself
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable' # Or 'beta', 'dev', 'master'
+
+      # 3. Cache pub dependencies
+      # This step caches the downloaded packages to speed up 'flutter pub get'
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          # The default path to the pub cache directory on macOS/Linux
+          path: ~/.pub-cache
+          # A unique key for the cache, based on the OS and the contents of pubspec.lock
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          # A fallback key if the exact key isn't found
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      # 4. Enable macOS desktop builds
+      - name: Enable macOS desktop
+        run: flutter config --enable-macos-desktop
+
+      # 5. Get Flutter dependencies
+      # This will be much faster if the cache was restored
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      # 6. Build the macOS application
+      # --release builds the optimized release version
+      - name: Build macOS app
+        run: flutter build macos --release
+
+      # 7. Upload the build artifact (.app file)
+      # This allows you to download the built app from the workflow summary page
+      - name: Upload macOS build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release-build
+          # The path to the built app bundle
+          path: build/macos/Build/Products/Release/*.app
+
+  build-windows:
+    # Use the latest version of Windows available
+    runs-on: windows-latest
+
+    steps:
+      # 1. Check out your repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up the Flutter SDK
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      # 3. Cache pub dependencies
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          # The default path to the pub cache directory on Windows
+          path: $env:LOCALAPPDATA\Pub\Cache
+          # A unique key for the cache, based on the OS and the contents of pubspec.lock
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          # A fallback key if the exact key isn't found
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      # 4. Enable Windows desktop builds
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      # 5. Get Flutter dependencies
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      # 6. Build the Windows application
+      # --release builds the optimized release version
+      - name: Build Windows app
+        run: flutter build windows --release
+
+      # 7. Upload the build artifact (Release directory)
+      # This allows you to download the built app from the workflow summary page
+      - name: Upload Windows build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release-build
+          # The path to the built app's release directory (contains .exe and .dlls)
+          # Updated path to include the x64 architecture directory
+          path: build/windows/x64/runner/Release
