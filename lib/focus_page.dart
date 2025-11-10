@@ -1,5 +1,4 @@
 // focus_page.dart
-// test so this git will actually register a change
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -44,8 +43,16 @@ class _FocusPageState extends State<FocusPage> {
   void _resetTimerForNextTask() {
     _timer?.cancel();
 
-    // Get the duration from the provider
-    final duration = context.read<TaskProvider>().timerDuration;
+    final currentTask = context.read<TaskProvider>().currentTask;
+
+    if (currentTask == null) {
+      setState(() {
+        _isAllDone = true;
+      });
+      return;
+    }
+
+    final duration = currentTask.timerDuration;
 
     if (duration == null) {
       // Stopwatch mode
@@ -71,7 +78,7 @@ class _FocusPageState extends State<FocusPage> {
       windowManager.setSize(const Size(200, 255), animate: true);
       windowManager.setAlignment(Alignment.bottomRight, animate: true);
       setState(() {
-        _seconds = 600; // Set to 10 minutes
+        _seconds += 600; // Add 10 minutes
       });
       _startTimer(); // Restart the timer
     }
@@ -95,26 +102,26 @@ class _FocusPageState extends State<FocusPage> {
         } else {
           timer.cancel(); // Stop timer at 0
           windowManager.center(animate: true);
-          windowManager.setSize(const Size(500, 300), animate: true);
+          windowManager.setSize(const Size(200, 255), animate: true);
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Time is up!'),
               actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _completeTask();
-            },
-            child: const Text('Next task'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _addTenMinutes();
-            },
-            child: const Text('10 more minutes'),
-          ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _completeTask();
+                  },
+                  child: const Text('Next task'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _addTenMinutes();
+                  },
+                  child: const Text('10 more minutes'),
+                ),
               ],
             ),
           );
@@ -141,6 +148,14 @@ class _FocusPageState extends State<FocusPage> {
       });
     } else {
       // More tasks, just restart the timer
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You nailed it!'),
+          backgroundColor: Color.fromARGB(255, 32, 97, 97),
+        ),
+      );
+
       _resetTimerForNextTask();
     }
   }
@@ -158,7 +173,6 @@ class _FocusPageState extends State<FocusPage> {
     return Scaffold(
       body: Column(
         children: [
-
           // --- PAGE CONTENT ---
           Expanded(
             child: Padding(
@@ -199,6 +213,12 @@ class _FocusPageState extends State<FocusPage> {
     // Use Consumer here so the task text updates
     return Consumer<TaskProvider>(
       builder: (context, provider, child) {
+        final currentTask = provider.currentTask;
+
+        if (currentTask == null) {
+          return const Center(child: Text('No task available.'));
+        }
+
         return Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -212,34 +232,31 @@ class _FocusPageState extends State<FocusPage> {
               ),
             ),
 
-
-
-            
             // Current Task
             Flexible(
-              child: Center( // This vertically centers the text.
+              child: Center(
                 child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal, // <-- SCROLLS HORIZONTALLY
+                  scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Text(
-                    provider.currentTask ?? '', // Show current task
+                    currentTask.description, // Use the title of the Task object
                     style: const TextStyle(
                         fontSize: 24, fontWeight: FontWeight.w300),
-                    maxLines: 1,     // <-- KEEPS IT ON ONE LINE
-                    softWrap: false, // <-- PREVENTS WRAPPING
+                    maxLines: 1,
+                    softWrap: false,
                   ),
                 ),
               ),
             ),
 
-            // Checkmark Button
-            IconButton.filled(
+            ElevatedButton(
               onPressed: _completeTask,
-              icon: const Icon(Icons.check),
-              iconSize: 50,
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
+              child: const Text('Finished Task'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],

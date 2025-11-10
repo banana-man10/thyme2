@@ -41,7 +41,7 @@ class _ListPageState extends State<ListPage> {
 
     // 1. Resize and move the window
     await windowManager.setAlwaysOnTop(true);
-    await windowManager.setSize(const Size(200, 255), animate: true);
+    await windowManager.setSize(const Size(220, 255), animate: true);
     await windowManager.setAlignment(Alignment.bottomRight, animate: true);
 
     // 2. Navigate to the focus page
@@ -144,7 +144,7 @@ class _ListPageState extends State<ListPage> {
                       return Card(
                         child: ListTile(
                           leading: CircleAvatar(child: Text('${index + 1}')),
-                          title: Text(provider.tasks[index]),
+                          title: Text(provider.tasks[index].description),
                         ),
                       );
                     },
@@ -156,17 +156,27 @@ class _ListPageState extends State<ListPage> {
             // --- Start Button ---
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _startFocusSession,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.blueAccent,
-                ),
-                child: const Text(
-                  'Start Focus Session',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _startFocusSession,
+                      child: const Text('Start Focus Session'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
+
+
+          
+
+
             ),
           ],
         ),
